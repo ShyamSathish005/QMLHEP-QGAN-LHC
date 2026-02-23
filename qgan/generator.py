@@ -56,11 +56,12 @@ class QuantumGenerator(nn.Module):
 
     # ------------------------------------------------------------------
     def get_gradient_norm(self) -> float:
-        """Compute and record the total L2 gradient norm."""
-        total = 0.0
+        """Compute and record the total L2 gradient norm (√Σ‖gᵢ‖²)."""
+        sq_sum = 0.0
         for p in self.parameters():
             if p.grad is not None:
-                total += p.grad.data.norm(2).item()
+                sq_sum += p.grad.data.norm(2).item() ** 2
+        total = sq_sum ** 0.5
         self.gradient_history.append(total)
         return total
 

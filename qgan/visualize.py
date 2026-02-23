@@ -14,21 +14,30 @@ def visualize_results(
     generator: QuantumGenerator,
     history: dict,
     n_samples: int = 2000,
+    target_mass: float = 1.0,
     save_path: str = "qgan_hep_analysis.png",
 ) -> None:
-    """Generate the 6-panel diagnostic figure and print statistics."""
+    """Generate the 6-panel diagnostic figure and print statistics.
+
+    Parameters
+    ----------
+    target_mass : float
+        The on-shell mass used during training (normalised units).
+    """
     generator.eval()
     torch.manual_seed(42)
     np.random.seed(42)
 
-    # ---- Real reference data ----
-    real_p = torch.randn(n_samples, 3) * 2.0
-    real_E = torch.sqrt(torch.sum(real_p**2, dim=1) + 1.0)
-    real_data = torch.cat([real_E.unsqueeze(1), real_p], dim=1)
+    # ---- Real reference data (same distribution as training) ----
+    from qgan.train import _generate_real_data
+
+    real_data = _generate_real_data(n_samples, mass=target_mass)
+    real_E = real_data[:, 0]
+    real_p = real_data[:, 1:]
 
     real_E_np = real_E.numpy()
     real_p_sq = torch.sum(real_p**2, dim=1).numpy()
-    real_mass = np.sqrt(np.maximum(real_E_np**2 - real_p_sq, 0))
+    real_mass = np.sqrt(np.maximum(real_E_np**2 - real_p_sq, 0.0))
 
     # ---- Generated data ----
     with torch.no_grad():
@@ -48,15 +57,16 @@ def visualize_results(
             label="Real", density=True)
     ax.hist(fake_mass, bins=50, alpha=0.6, color="teal", edgecolor="black",
             label="QGAN", density=True)
-    ax.axvline(1.0, color="red", ls="--", lw=2, label="Target m=1")
+    ax.axvline(target_mass, color="red", ls="--", lw=2,
+               label=f"Target m={target_mass}")
     ax.set(xlabel="Invariant mass", ylabel="Density",
            title="(a) Mass distribution")
     ax.legend(); ax.grid(alpha=0.3)
 
     # (b) Transverse momentum
     ax = axes[0, 1]
-    real_pt = np.sqrt(real_p[:, 0].numpy()**2 + real_p[:, 1].numpy()**2)
-    fake_pt = np.sqrt(fake_data[:, 1].numpy()**2 + fake_data[:, 2].numpy()**2)
+    real_pt = np.sqrt(real_p[:, 0].numpy() ** 2 + real_p[:, 1].numpy() ** 2)
+    fake_pt = np.sqrt(fake_data[:, 1].numpy() ** 2 + fake_data[:, 2].numpy() ** 2)
     ax.hist(real_pt, bins=40, alpha=0.6, color="blue", edgecolor="black",
             label="Real pT", density=True)
     ax.hist(fake_pt, bins=40, alpha=0.6, color="teal", edgecolor="black",

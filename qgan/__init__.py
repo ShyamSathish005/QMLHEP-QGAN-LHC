@@ -10,7 +10,7 @@ from qgan.losses import physics_aware_loss, mmd_loss
 from qgan.train import train_qgan
 from qgan.visualize import visualize_results
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
     "QuantumGenerator",
     "generator_circuit",

@@ -8,11 +8,29 @@ circuits and PyTorch.
 
 ---
 
+## Why Double-Higgs?
+
+Measuring Higgs-boson pair production (pp → HH) at the LHC is the only
+direct probe of the Higgs trilinear self-coupling λ₃ — a fundamental
+parameter of the Standard Model that tells us the shape of the Higgs
+potential.  The problem: HH events are **extremely rare** (~1000×
+rarer than single-Higgs), so Monte-Carlo simulation eats enormous
+compute budgets.  A fast, physics-aware generative model that can
+produce realistic HH 4-vectors on demand would directly accelerate
+analysis pipelines.
+
+This project explores whether a **quantum GAN** — whose entangling
+layers provide an exponentially large Hilbert space for latent
+representations — can learn the kinematics of such events while
+respecting the hard constraint $E^2 = |\mathbf{p}|^2 + m^2$.
+
+---
+
 ## Quick start
 
 ```bash
 # clone & set up
-git clone https://github.com/<you>/QMLHEP-QGAN-LHC.git
+git clone https://github.com/shyamsathish/QMLHEP-QGAN-LHC.git
 cd QMLHEP-QGAN-LHC
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -97,15 +115,12 @@ QMLHEP-QGAN-LHC/
 
 ## Results (200 epochs, default config)
 
-| Metric | Value |
-|--------|-------|
-| Generated mean mass | 1.17 ± 0.46 (target 1.0) |
-| Wasserstein distance (mass) | 0.424 |
-| Physics compliance (\|m − 1\| < 0.5) | 87 % |
-| Barren plateau | Detected early, recovered by epoch 50 |
-| Mode collapse | Not detected |
+After running `python main.py`, outputs are saved to `results/`:
 
-The 6-panel diagnostic figure is saved to `qgan_hep_analysis.png`.
+- `results/qgan_hep_analysis.png` — 6-panel diagnostic figure
+- `results/training_metrics.json` — final loss values
+
+See that folder for the actual output from the current codebase.
 
 ---
 

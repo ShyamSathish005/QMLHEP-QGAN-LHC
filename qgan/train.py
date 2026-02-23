@@ -10,13 +10,22 @@ import torch.optim as optim
 from qgan.generator import QuantumGenerator, N_QUBITS
 from qgan.discriminator import Discriminator
 from qgan.losses import physics_aware_loss, mmd_loss
+from synthetic_data import generate_double_higgs_samples
 
 
 def _generate_real_data(n_samples: int = 1000, mass: float = 1.0) -> torch.Tensor:
-    """Simulate Double-Higgs–like 4-vectors obeying E² = p² + m²."""
-    p = torch.randn(n_samples, 3) * 2.0
-    E = torch.sqrt(torch.sum(p**2, dim=1) + mass**2).unsqueeze(1)
-    return torch.cat([E, p], dim=1)
+    """Generate on-shell 4-vectors via ``synthetic_data`` and normalise.
+
+    ``synthetic_data.generate_double_higgs_samples`` produces events at
+    the physical Higgs mass (125 GeV).  We rescale so that the invariant
+    mass becomes ``mass`` (default 1.0) in the normalised units used for
+    training.
+    """
+    raw = generate_double_higgs_samples(n_samples=n_samples, m_higgs=125.0)
+    # Normalise: divide by 125 so m_inv → 1.0  (or whatever `mass` is)
+    scale = mass / 125.0
+    data = torch.as_tensor(raw, dtype=torch.float32) * scale
+    return data
 
 
 def train_qgan(
